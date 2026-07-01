@@ -1,0 +1,51 @@
+name: SignalPro FX — Hourly Scan
+
+on:
+  schedule:
+    - cron: "5 * * * *"   # Every hour at :05 (avoids candle-close lag)
+  workflow_dispatch:        # Manual trigger from GitHub UI
+
+jobs:
+  scan:
+    name: EMA Pullback Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Restore duplicate-guard + history between runs
+      - name: Restore signal cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            last_signals.json
+            signal_history.json
+          key: signal-cache-${{ github.ref_name }}
+          restore-keys: signal-cache-
+
+      - name: Run scan
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL:    ${{ secrets.TELEGRAM_CHANNEL }}
+        run: python signalpro.py
+
+      # Always save cache even if scan had errors
+      - name: Save signal cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: |
+            last_signals.json
+            signal_history.json
+          key: signal-cache-${{ github.ref_name }}-${{ github.run_id }}
