@@ -33,9 +33,9 @@ ATR_TP1_MULT    = 2.0
 ATR_TP2_MULT    = 3.5
 MIN_CANDLES     = 60
 MAX_SL_PIPS     = 200
-PULLBACK_BUFFER = 0.5
+PULLBACK_BUFFER = 2.0
 
-MIN_SCORE       = 55   # minimum score to send signal
+MIN_SCORE       = 40   # minimum score to send signal
 
 
 # ═══════════════════════════════════════
